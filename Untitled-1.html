@@ -1,0 +1,2564 @@
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SRI Manager Pro</title>
+  <!-- Font Awesome para iconos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <!-- Chart.js para gráficos -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+
+    body {
+      display: flex;
+      min-height: 100vh;
+      background-color: #f4f6f9;
+      color: #333;
+    }
+
+    /* ============ PANTALLA DE CARGA ============ */
+    .loading-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('https://images.unsplash.com/photo-1535895096023-8dd86d474bf3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80') center center;
+      background-size: cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 300;
+      flex-direction: column;
+      text-align: center;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+    }
+
+    .loading-sri {
+      font-size: 80px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 30px;
+      letter-spacing: 4px;
+      animation: fadeIn 1.5s ease-in-out;
+    }
+
+    .loading-spinner {
+      width: 60px;
+      height: 60px;
+      border: 5px solid rgba(255,255,255,0.3);
+      border-top: 5px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    .loading-text {
+      font-size: 20px;
+      color: white;
+      font-weight: 500;
+      animation: fadeIn 2s ease-in-out;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============ PANTALLA DE LOGIN ============ */
+    .login-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #1a3a6e, #2c5aa0);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 200;
+    }
+
+    .login-form {
+      background: white;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .login-form h2 {
+      color: #1a3a6e;
+      margin-bottom: 25px;
+      font-size: 28px;
+    }
+
+    .login-form .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .login-form label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 500;
+    }
+
+    .login-form input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 15px;
+      box-sizing: border-box;
+    }
+
+    .login-form button {
+      background: #1a3a6e;
+      color: white;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .login-form button:hover {
+      background: #2c5aa0;
+    }
+
+    .login-logo {
+      font-size: 48px;
+      color: #1a3a6e;
+      margin-bottom: 15px;
+    }
+
+    .login-footer {
+      margin-top: 20px;
+      color: #666;
+      font-size: 14px;
+    }
+
+    /* ============ BARRA LATERAL IZQUIERDA ============ */
+    .sidebar {
+      width: 280px;
+      background: linear-gradient(180deg, #1a3a6e, #2c5aa0);
+      color: white;
+      height: 100vh;
+      position: fixed;
+      left: 0;
+      top: 0;
+      padding: 20px 0;
+      box-shadow: 3px 0 10px rgba(0,0,0,0.1);
+      z-index: 100;
+      overflow-y: auto;
+      display: none;
+    }
+
+    .sidebar-header {
+      text-align: center;
+      padding: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .sidebar-header h3 {
+      font-weight: 600;
+      font-size: 18px;
+    }
+
+    .sidebar-menu {
+      padding: 20px 0;
+    }
+
+    .sidebar-menu a {
+      display: flex;
+      align-items: center;
+      padding: 14px 25px;
+      color: #e0e7ff;
+      text-decoration: none;
+      transition: 0.3s;
+      font-size: 15px;
+    }
+
+    .sidebar-menu a:hover, .sidebar-menu a.active {
+      background: rgba(255,255,255,0.1);
+      color: white;
+      border-left: 4px solid #ffd700;
+    }
+
+    .sidebar-menu a i {
+      width: 30px;
+      font-size: 18px;
+    }
+
+    /* ============ CONTENIDO DERECHO ============ */
+    .main-content {
+      flex: 1;
+      margin-left: 280px;
+      padding: 30px;
+      display: none;
+    }
+
+    header.top {
+      display: none;
+    }
+
+    .page-title {
+      font-size: 26px;
+      color: #1a3a6e;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      padding: 25px;
+      margin-bottom: 25px;
+    }
+
+    .form-group {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+    }
+
+    .form-group input, .form-group select, .form-group textarea, .form-group button {
+      flex: 1;
+      min-width: 200px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    .form-group button {
+      background: #2c5aa0;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .form-group button:hover {
+      background: #1a3a6e;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+    }
+
+    table th {
+      background: #2c5aa0;
+      color: white;
+      padding: 14px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    table td {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+    }
+
+    table tr:hover {
+      background-color: #f8f9ff;
+    }
+
+    .alert {
+      background: #e7f3ff;
+      padding: 16px;
+      border-left: 4px solid #2c5aa0;
+      border-radius: 8px;
+      margin: 15px 0;
+      font-size: 15px;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 350px;
+      margin: 20px 0;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      margin-top: 30px;
+      color: #666;
+      font-size: 14px;
+      border-top: 1px solid #eee;
+    }
+
+    /* Top bar cuando está logueado */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 0;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      background: #2c5aa0;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+    }
+
+    .logout-btn {
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .logout-btn:hover {
+      color: #e74c3c;
+    }
+
+    /* Paginación */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+      gap: 5px;
+    }
+
+    .pagination button {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      background: white;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    .pagination button.active {
+      background: #2c5aa0;
+      color: white;
+      border-color: #2c5aa0;
+    }
+
+    .pagination button:hover:not(.active) {
+      background: #f0f0f0;
+    }
+
+    /* Soporte técnico */
+    .soporte-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      padding: 25px;
+      margin-bottom: 25px;
+      text-align: center;
+    }
+
+    .soporte-card h3 {
+      color: #1a3a6e;
+      margin-bottom: 20px;
+      font-size: 22px;
+    }
+
+    .soporte-card .contact-info {
+      margin: 15px 0;
+      font-size: 16px;
+    }
+
+    .soporte-card .contact-info i {
+      color: #25d366;
+      margin-right: 10px;
+      font-size: 20px;
+    }
+
+    .soporte-card .whatsapp-btn {
+      background: #25d366;
+      color: white;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 15px 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .soporte-card .whatsapp-btn:hover {
+      background: #128c7e;
+    }
+
+    .map-container {
+      margin: 20px 0;
+      height: 300px;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .map-container iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .oficina-info {
+      background: #f8f9ff;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      text-align: left;
+    }
+
+    .oficina-info h4 {
+      color: #1a3a6e;
+      margin-bottom: 10px;
+    }
+
+    .horario-atencion {
+      background: #e7f3ff;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      text-align: left;
+    }
+
+    .horario-atencion h4 {
+      color: #1a3a6e;
+      margin-bottom: 10px;
+    }
+
+    /* Factura */
+    .factura-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      font-size: 14px;
+    }
+
+    .factura-header {
+      text-align: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 15px;
+    }
+
+    .factura-header h2 {
+      color: #1a3a6e;
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .factura-header p {
+      margin: 5px 0;
+      color: #666;
+    }
+
+    .factura-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      gap: 20px;
+    }
+
+    .factura-info .info-column {
+      flex: 1;
+    }
+
+    .info-column h4 {
+      color: #1a3a6e;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+
+    .info-column p {
+      margin: 5px 0;
+      font-size: 14px;
+    }
+
+    .productos-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+
+    .productos-table th {
+      background: #2c5aa0;
+      color: white;
+      padding: 10px;
+      text-align: left;
+    }
+
+    .productos-table td {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .totales {
+      margin-top: 20px;
+      text-align: right;
+    }
+
+    .totales div {
+      margin: 5px 0;
+    }
+
+    .total-final {
+      font-size: 18px;
+      font-weight: bold;
+      color: #1a3a6e;
+      margin-top: 10px;
+    }
+
+    .factura-footer {
+      margin-top: 30px;
+      text-align: center;
+      font-size: 12px;
+      color: #666;
+      border-top: 1px solid #eee;
+      padding-top: 15px;
+    }
+
+    /* QR Code */
+    .qr-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 20px 0;
+      padding: 20px;
+      background: #f8f9ff;
+      border-radius: 8px;
+    }
+
+    .qr-code {
+      width: 150px;
+      height: 150px;
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .qr-code img {
+      width: 100%;
+      height: 100%;
+    }
+
+    .qr-info {
+      margin-left: 20px;
+      text-align: left;
+    }
+
+    .qr-info h4 {
+      color: #1a3a6e;
+      margin-bottom: 10px;
+    }
+
+    .qr-info p {
+      margin: 5px 0;
+      font-size: 14px;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+      .sidebar {
+        width: 240px;
+      }
+      .main-content {
+        margin-left: 240px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 80px;
+        overflow-x: hidden;
+      }
+      .sidebar-header h3, .sidebar-menu span {
+        display: none;
+      }
+      .sidebar-menu i {
+        font-size: 20px;
+        margin: 0 auto;
+        text-align: center;
+      }
+      .sidebar-menu a {
+        justify-content: center;
+        padding: 16px;
+      }
+      .main-content {
+        margin-left: 80px;
+        padding: 20px;
+      }
+      .page-title {
+        font-size: 22px;
+      }
+      .form-group {
+        flex-direction: column;
+      }
+      .form-group input, .form-group select, button {
+        min-width: 100%;
+      }
+      .qr-container {
+        flex-direction: column;
+        text-align: center;
+      }
+      .qr-info {
+        margin-left: 0;
+        margin-top: 20px;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .login-form {
+        margin: 20px;
+        padding: 30px 20px;
+      }
+      .pagination button {
+        padding: 6px 10px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============ PANTALLA DE CARGA ============ -->
+  <div class="loading-container" id="loading-container">
+    <div class="loading-sri">SRI</div>
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Cargando...</div>
+  </div>
+
+  <!-- ============ PANTALLA DE LOGIN ============ -->
+  <div class="login-container" id="login-container">
+    <div class="login-form">
+      <div class="login-logo">
+        <i class="fas fa-gavel"></i>
+      </div>
+      <h2>SRI Manager Pro</h2>
+      <form id="login-form">
+        <div class="form-group">
+          <label for="username">Usuario</label>
+          <input type="text" id="username" placeholder="Ingrese su usuario" required />
+        </div>
+        <div class="form-group">
+          <label for="password">Contraseña</label>
+          <input type="password" id="password" placeholder="Ingrese su contraseña" required />
+        </div>
+        <button type="submit">Iniciar Sesión</button>
+      </form>
+      <div class="login-footer">
+        <p>Versión 2.0 - 2025</p>
+        <p>Sistema Integral de Gestión Fiscal | Ecuador</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ BARRA LATERAL IZQUIERDA ============ -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h3><i class="fas fa-gavel"></i> SRI Manager Pro</h3>
+      <small>Ver 2.0 - 2025</small>
+    </div>
+    <nav class="sidebar-menu">
+      <a href="#" class="active" data-tab="clientes"><i class="fas fa-users"></i> <span>Clientes</span></a>
+      <a href="#" data-tab="facturas"><i class="fas fa-file-invoice"></i> <span>Facturas</span></a>
+      <a href="#" data-tab="compras"><i class="fas fa-shopping-cart"></i> <span>Compras</span></a>
+      <a href="#" data-tab="vehiculos"><i class="fas fa-car"></i> <span>Vehículos</span></a>
+      <a href="#" data-tab="busqueda"><i class="fas fa-search"></i> <span>Buscar Vehículo</span></a>
+      <a href="#" data-tab="graficos"><i class="fas fa-chart-line"></i> <span>Gráficos</span></a>
+      <a href="#" data-tab="declaraciones"><i class="fas fa-book"></i> <span>Declaraciones</span></a>
+      <a href="#" data-tab="ajustes"><i class="fas fa-cog"></i> <span>Ajustes</span></a>
+      <a href="#" data-tab="soporte"><i class="fas fa-headset"></i> <span>Soporte Técnico</span></a>
+    </nav>
+  </div>
+
+  <!-- ============ CONTENIDO PRINCIPAL (DERECHA) ============ -->
+  <div class="main-content" id="main-content">
+    <div class="top-bar">
+      <div class="user-info">
+        <div class="user-avatar">CM</div>
+        <div>
+          <div style="font-weight: 600; color: #333;">Carlos Mendoza</div>
+          <div style="font-size: 14px; color: #666;">Administrador</div>
+        </div>
+      </div>
+      <button class="logout-btn" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+    </div>
+
+    <h1 class="page-title" id="page-title">👥 Clientes</h1>
+
+    <!-- Contenido dinámico -->
+    <div id="content-area">
+      <!-- Se carga dinámicamente según el menú -->
+    </div>
+
+    <footer>
+      © 2025 SRI Manager Pro - Sistema Integral de Gestión Fiscal | Ecuador
+    </footer>
+  </div>
+
+  <script>
+    // Arrays para almacenar datos
+    let clientesData = [];
+    let comprasData = [];
+    let vehiculosData = [];
+    let facturasData = [];
+    let productosFactura = [];
+    
+    let paginaActualClientes = 1;
+    let paginaActualCompras = 1;
+    let paginaActualVehiculos = 1;
+    let paginaActualFacturas = 1;
+    
+    let clientesFiltrados = [];
+    let comprasFiltradas = [];
+    let vehiculosFiltrados = [];
+    let facturasFiltradas = [];
+
+    // Mostrar pantalla de carga durante 3 segundos
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        document.getElementById('loading-container').style.display = 'none';
+        document.getElementById('login-container').style.display = 'flex';
+      }, 3000);
+    });
+
+    // Generar datos iniciales
+    function generarDatosIniciales() {
+      const nombres = [
+        'Carlos', 'María', 'Juan', 'Ana', 'Pedro', 'Luisa', 'Diego', 'Sofía', 'Andrés', 'Valentina',
+        'José', 'Carolina', 'Miguel', 'Camila', 'Fernando', 'Lucía', 'Roberto', 'Daniela', 'Jorge', 'Paula'
+      ];
+      
+      const apellidos = [
+        'Mendoza', 'Torres', 'González', 'Ramírez', 'Pérez', 'Chávez', 'Rojas', 'Castro', 'Vargas', 'Martínez',
+        'Sánchez', 'Ortega', 'Jiménez', 'Córdova', 'León', 'Espinoza', 'Navarro', 'Guerrero', 'Salazar', 'Flores'
+      ];
+      
+      // Clientes iniciales
+      clientesData = [
+        { 
+          id: 1,
+          nombre: 'Carlos Mendoza', 
+          ruc: '0987654321', 
+          telefono: '0998765432', 
+          correo: 'carlos@email.com',
+          direccion: 'Av. Amazonas 1234',
+          regimen: 'Régimen General'
+        },
+        { 
+          id: 2,
+          nombre: 'Electro S.A.', 
+          ruc: '0955443322001', 
+          telefono: '042123456', 
+          correo: 'ventas@electro.com',
+          direccion: 'Av. 10 de Agosto 5678',
+          regimen: 'Régimen General'
+        }
+      ];
+      
+      // Añadir más clientes
+      for (let i = 0; i < 98; i++) {
+        const nombreAleatorio = nombres[Math.floor(Math.random() * nombres.length)];
+        const apellidoAleatorio = apellidos[Math.floor(Math.random() * apellidos.length)];
+        const nombreCompleto = `${nombreAleatorio} ${apellidoAleatorio}`;
+        
+        // Cédula (10 dígitos)
+        let cedula = '';
+        for (let j = 0; j < 10; j++) {
+          cedula += Math.floor(Math.random() * 10);
+        }
+        
+        clientesData.push({
+          id: clientesData.length + 1,
+          nombre: nombreCompleto,
+          ruc: cedula,
+          telefono: `09${Math.floor(10000000 + Math.random() * 90000000)}`,
+          correo: `${nombreAleatorio.toLowerCase()}.${apellidoAleatorio.toLowerCase()}@gmail.com`,
+          direccion: `Calle ${Math.floor(Math.random() * 100) + 1} # ${Math.floor(Math.random() * 20) + 1}-${Math.floor(Math.random() * 10) + 1}`,
+          regimen: ['Régimen General', 'RIMPE', 'Agente de Retención'][Math.floor(Math.random() * 3)]
+        });
+      }
+      
+      clientesFiltrados = [...clientesData];
+    }
+
+    // Generar múltiples registros de compras
+    function generarCompras() {
+      const proveedores = [
+        'Repuestos S.A.', 'Oficina Express', 'Materiales de Construcción Ltda.', 'Tecnología del Ecuador',
+        'Alimentos Premium', 'Transportes Rápidos', 'Servicios Industriales', 'Distribuidora Nacional'
+      ];
+      
+      const descripciones = [
+        'Compra de repuestos automotrices', 'Suministros de oficina', 'Materiales para construcción',
+        'Equipos de tecnología', 'Productos alimenticios', 'Servicios de transporte',
+        'Herramientas industriales', 'Productos de distribución'
+      ];
+      
+      // Compras iniciales
+      comprasData = [
+        { 
+          id: 1,
+          fecha: '2025-04-01', 
+          proveedor: 'Repuestos S.A.', 
+          factura: '001-001-000000045', 
+          descripcion: 'Compra de repuestos automotrices',
+          subtotal: 500.00,
+          iva: 60.00,
+          total: 560.00
+        },
+        { 
+          id: 2,
+          fecha: '2025-04-05', 
+          proveedor: 'Oficina Express', 
+          factura: '001-002-000000112', 
+          descripcion: 'Suministros de oficina',
+          subtotal: 100.00,
+          iva: 12.00,
+          total: 112.00
+        }
+      ];
+      
+      // Generar 98 compras adicionales
+      for (let i = 0; i < 98; i++) {
+        const proveedor = proveedores[Math.floor(Math.random() * proveedores.length)];
+        const descripcion = descripciones[Math.floor(Math.random() * descripciones.length)];
+        
+        // Fecha aleatoria en los últimos 6 meses
+        const fecha = new Date();
+        fecha.setMonth(fecha.getMonth() - Math.floor(Math.random() * 6));
+        fecha.setDate(Math.floor(Math.random() * 28) + 1);
+        const fechaStr = fecha.toISOString().split('T')[0];
+        
+        // Número de factura
+        const establecimiento = String(Math.floor(Math.random() * 900) + 100).padStart(3, '0');
+        const puntoEmision = String(Math.floor(Math.random() * 900) + 100).padStart(3, '0');
+        const secuencia = String(Math.floor(Math.random() * 900000) + 100000).padStart(6, '0');
+        const factura = `${establecimiento}-${puntoEmision}-${secuencia}`;
+        
+        // Monto aleatorio
+        const subtotal = parseFloat((Math.random() * 4000 + 50).toFixed(2));
+        const iva = parseFloat((subtotal * 0.12).toFixed(2));
+        const total = subtotal + iva;
+        
+        comprasData.push({
+          id: comprasData.length + 1,
+          fecha: fechaStr,
+          proveedor: proveedor,
+          factura: factura,
+          descripcion: descripcion,
+          subtotal: subtotal,
+          iva: iva,
+          total: total
+        });
+      }
+      
+      comprasFiltradas = [...comprasData];
+    }
+
+    // Generar múltiples registros de vehículos
+    function generarVehiculos() {
+      const marcas = [
+        'Toyota', 'Honda', 'Ford', 'Chevrolet', 'Kia', 'Hyundai', 'Nissan', 'Mazda'
+      ];
+      
+      const modelos = [
+        'Sedan', 'Hatchback', 'SUV', 'Pickup', 'Van', 'Coupe', 'Convertible', 'Wagon',
+        'Hilux', 'Corolla', 'Civic', 'Focus', 'Spark', 'Rio', 'Tucson', 'Pathfinder'
+      ];
+      
+      // Vehículos iniciales
+      vehiculosData = [
+        { 
+          id: 1,
+          placa: 'LBA-1234', 
+          marca: 'Toyota', 
+          modelo: 'Hilux', 
+          año: 2022,
+          propietario: 'Auto S.A.',
+          soat: '2025-12-01',
+          revision: '2025-07-15',
+          observaciones: 'Mantenimiento regular, 3 servicios realizados'
+        },
+        { 
+          id: 2,
+          placa: 'ABC-5678', 
+          marca: 'Kia', 
+          modelo: 'Rio', 
+          año: 2020,
+          propietario: 'Juan Pérez',
+          soat: '2025-10-15',
+          revision: '2025-05-20',
+          observaciones: 'Mantenimiento regular, 2 servicios realizados'
+        }
+      ];
+      
+      // Generar 98 vehículos adicionales
+      for (let i = 0; i < 98; i++) {
+        const marca = marcas[Math.floor(Math.random() * marcas.length)];
+        const modelo = modelos[Math.floor(Math.random() * modelos.length)];
+        const propietario = ['Auto S.A.', 'Juan Pérez', 'María López', 'Carlos Mendoza'][Math.floor(Math.random() * 4)];
+        
+        // Placa aleatoria
+        const letras = String.fromCharCode(65 + Math.floor(Math.random() * 26)) +
+                      String.fromCharCode(65 + Math.floor(Math.random() * 26)) +
+                      String.fromCharCode(65 + Math.floor(Math.random() * 26));
+        const numeros = String(Math.floor(Math.random() * 9000) + 1000);
+        const placa = `${letras}-${numeros}`;
+        
+        // Año aleatorio entre 2015 y 2025
+        const año = Math.floor(Math.random() * 11) + 2015;
+        
+        // Fechas de vencimiento
+        const soat = new Date();
+        soat.setFullYear(soat.getFullYear() + 1);
+        const soatStr = soat.toISOString().split('T')[0];
+        
+        const revision = new Date();
+        revision.setMonth(revision.getMonth() + 6);
+        const revisionStr = revision.toISOString().split('T')[0];
+        
+        vehiculosData.push({
+          id: vehiculosData.length + 1,
+          placa: placa,
+          marca: marca,
+          modelo: modelo,
+          año: año,
+          propietario: propietario,
+          soat: soatStr,
+          revision: revisionStr,
+          observaciones: `Mantenimiento regular, ${Math.floor(Math.random() * 5)} servicios realizados`
+        });
+      }
+      
+      vehiculosFiltrados = [...vehiculosData];
+    }
+
+    // Definimos el contenido de cada pestaña
+    const tabs = {
+      clientes: function() {
+        const clientesPorPagina = 10;
+        const inicio = (paginaActualClientes - 1) * clientesPorPagina;
+        const fin = inicio + clientesPorPagina;
+        const clientesPagina = clientesFiltrados.slice(inicio, fin);
+        
+        const totalPaginas = Math.ceil(clientesFiltrados.length / clientesPorPagina);
+        
+        let contenido = `
+          <div class="card">
+            <h2>👥 Registro de Clientes</h2>
+            <form id="form-cliente-nuevo">
+              <div class="form-group">
+                <input type="text" id="nombre-cliente" placeholder="Nombre/Razón Social" required />
+                <input type="text" id="ruc-cliente" placeholder="RUC/Cédula" required />
+              </div>
+              <div class="form-group">
+                <input type="email" id="correo-cliente" placeholder="Correo" />
+                <input type="tel" id="telefono-cliente" placeholder="Teléfono" />
+              </div>
+              <input type="text" id="direccion-cliente" placeholder="Dirección" />
+              <select id="regimen-cliente">
+                <option value="">Seleccione régimen</option>
+                <option value="Régimen General">Régimen General</option>
+                <option value="RIMPE">RIMPE</option>
+                <option value="Agente de Retención">Agente de Retención</option>
+              </select>
+              <button type="button" onclick="registrarCliente()">Registrar Cliente</button>
+            </form>
+          </div>
+
+          <div class="card">
+            <h3>📋 Clientes Registrados (${clientesFiltrados.length} encontrados)</h3>
+            <div class="form-group">
+              <input type="text" id="buscador-clientes" placeholder="Buscar cliente por nombre o RUC..." onkeyup="filtrarClientes()">
+            </div>
+            <table id="tabla-clientes">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>RUC</th>
+                  <th>Teléfono</th>
+                  <th>Correo</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="cuerpo-tabla">
+                ${clientesPagina.map(cliente => `
+                  <tr data-id="${cliente.id}">
+                    <td contenteditable="true">${cliente.nombre}</td>
+                    <td contenteditable="true">${cliente.ruc}</td>
+                    <td contenteditable="true">${cliente.telefono}</td>
+                    <td contenteditable="true">${cliente.correo}</td>
+                    <td>
+                      <button onclick="guardarCambiosCliente(${cliente.id})" style="background: #27ae60; margin-right: 5px;">Guardar</button>
+                      <button onclick="eliminarCliente(${cliente.id})" style="background: #e74c3c;">Eliminar</button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            <div class="pagination" id="paginacion">
+              ${Array.from({length: totalPaginas}, (_, i) => `
+                <button class="${i + 1 === paginaActualClientes ? 'active' : ''}" onclick="cambiarPagina(${i + 1})">${i + 1}</button>
+              `).join('')}
+            </div>
+          </div>
+          
+          <div class="card">
+            <h3>📱 Código QR del Sistema</h3>
+            <div class="qr-container">
+              <div class="qr-code">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://srmanagerpro.com" alt="Código QR">
+              </div>
+              <div class="qr-info">
+                <h4>Acceso Rápido al Sistema</h4>
+                <p><strong>Empresa:</strong> SRI Manager Pro</p>
+                <p><strong>RUC:</strong> 0987654321001</p>
+                <p><strong>URL:</strong> <a href="https://srmanagerpro.com" target="_blank" style="color: #2c5aa0; text-decoration: underline;">https://srmanagerpro.com</a></p>
+                <p>Escanee este código QR para acceder al sistema desde su dispositivo móvil</p>
+              </div>
+            </div>
+          </div>
+        `;
+        return contenido;
+      },
+
+      facturas: function() {
+        // Reiniciar productos de factura
+        productosFactura = [];
+        
+        return `
+          <div class="card">
+            <h2>🧾 Nueva Factura Electrónica</h2>
+            <form id="form-factura">
+              <div class="form-group">
+                <select id="cliente-factura" onchange="actualizarDatosCliente()">
+                  <option value="">Seleccione cliente</option>
+                  ${clientesData.map(cliente => `<option value="${cliente.id}">${cliente.nombre} (${cliente.ruc})</option>`).join('')}
+                </select>
+                <input type="date" id="fecha-factura" value="${new Date().toISOString().split('T')[0]}" required />
+                <input type="text" id="comprobante-factura" placeholder="No. Comprobante (001-001-000000123)" />
+              </div>
+              
+              <div class="form-group">
+                <input type="text" id="cliente-nombre" placeholder="Nombre del cliente" readonly />
+                <input type="text" id="cliente-ruc" placeholder="RUC del cliente" readonly />
+              </div>
+              
+              <h3>Productos</h3>
+              <div class="form-group">
+                <input type="text" id="producto-nombre" placeholder="Nombre del producto" />
+                <input type="number" id="producto-cantidad" placeholder="Cantidad" min="1" value="1" />
+                <input type="number" id="producto-precio" placeholder="Precio unitario" min="0.01" step="0.01" />
+                <select id="producto-iva">
+                  <option value="12">IVA 12%</option>
+                  <option value="0">IVA 0%</option>
+                  <option value="exento">Exento</option>
+                </select>
+              </div>
+              <button type="button" onclick="agregarProducto()">➕ Agregar Producto</button>
+              
+              <div id="productos-agregados" style="margin: 15px 0; padding: 10px; background: #f8f9ff; border-radius: 8px; display: none;">
+                <table id="tabla-productos" style="width: 100%; border-collapse: collapse;">
+                  <thead>
+                    <tr style="background: #2c5aa0; color: white;">
+                      <th style="padding: 8px; text-align: left;">Producto</th>
+                      <th style="padding: 8px; text-align: left;">Cantidad</th>
+                      <th style="padding: 8px; text-align: left;">Precio</th>
+                      <th style="padding: 8px; text-align: left;">IVA</th>
+                      <th style="padding: 8px; text-align: left;">Total</th>
+                      <th style="padding: 8px; text-align: left;">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cuerpo-productos">
+                  </tbody>
+                </table>
+              </div>
+              
+              <div class="form-group" style="margin-top: 20px;">
+                <div style="flex: 1;"></div>
+                <div style="flex: 1; text-align: right;">
+                  <div style="margin: 5px 0;"><strong>Subtotal:</strong> <span id="subtotal-factura">$0.00</span></div>
+                  <div style="margin: 5px 0;"><strong>IVA (12%):</strong> <span id="iva-factura">$0.00</span></div>
+                  <div style="margin: 5px 0;"><strong>Total:</strong> <span id="total-factura" style="color: #1a3a6e; font-weight: 600; font-size: 18px;">$0.00</span></div>
+                </div>
+              </div>
+              
+              <button type="button" onclick="emitirFactura()" style="background: #1a3a6e; padding: 12px; font-size: 16px; width: 100%;">.Emitir Factura Electrónica</button>
+            </form>
+          </div>
+          
+          <div class="card" id="factura-imprimir" style="display: none;">
+            <div class="factura-container">
+              <div class="factura-header">
+                <h2>FACTURA ELECTRÓNICA</h2>
+                <p><strong>EMPRESA: SRI Manager Pro</strong></p>
+                <p>RUC: 0987654321001</p>
+                <p>Dirección: Av. Principal N123, Babahoyo</p>
+                <p>Teléfono: 04-2123456 | Email: info@srmanager.com</p>
+              </div>
+              
+              <div class="factura-info">
+                <div class="info-column">
+                  <h4>Datos del Cliente</h4>
+                  <p><strong>Nombre:</strong> <span id="factura-cliente-nombre"></span></p>
+                  <p><strong>RUC:</strong> <span id="factura-cliente-ruc"></span></p>
+                  <p><strong>Fecha:</strong> <span id="factura-fecha"></span></p>
+                </div>
+                <div class="info-column">
+                  <h4>Comprobante</h4>
+                  <p><strong>No.:</strong> <span id="factura-comprobante"></span></p>
+                  <p><strong>Clave de Acceso:</strong></p>
+                  <p style="font-family: monospace; font-size: 12px;" id="factura-clave"></p>
+                </div>
+              </div>
+              
+              <table class="productos-table">
+                <thead>
+                  <tr>
+                    <th>Descripción</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unit.</th>
+                    <th>IVA</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody id="factura-productos">
+                </tbody>
+              </table>
+              
+              <div class="totales">
+                <div><strong>Subtotal:</strong> <span id="factura-subtotal"></span></div>
+                <div><strong>IVA 12%:</strong> <span id="factura-iva"></span></div>
+                <div class="total-final"><strong>TOTAL:</strong> <span id="factura-total"></span></div>
+              </div>
+              
+              <div class="factura-footer">
+                <p>Documento generado electrónicamente - Válido como comprobante de pago</p>
+                <p>Este documento se encuentra disponible en el portal del SRI</p>
+                <p>Gracias por su compra</p>
+              </div>
+            </div>
+          </div>
+        `;
+      },
+
+      compras: function() {
+        const comprasPorPagina = 10;
+        const inicio = (paginaActualCompras - 1) * comprasPorPagina;
+        const fin = inicio + comprasPorPagina;
+        const comprasPagina = comprasFiltradas.slice(inicio, fin);
+        
+        const totalPaginas = Math.ceil(comprasFiltradas.length / comprasPorPagina);
+        
+        // Calcular total
+        const totalGeneral = comprasFiltradas.reduce((sum, compra) => sum + compra.total, 0);
+        
+        let contenido = `
+          <div class="card">
+            <h2>📦 Registro de Compras</h2>
+            <form id="form-compra-nuevo">
+              <div class="form-group">
+                <input type="text" id="proveedor-compra" placeholder="Proveedor (RUC)" required />
+                <input type="date" id="fecha-compra" required />
+                <input type="text" id="factura-compra" placeholder="No. Factura" />
+              </div>
+              <input type="text" id="descripcion-compra" placeholder="Descripción" />
+              <div class="form-group">
+                <input type="number" id="subtotal-compra" placeholder="Subtotal" />
+                <input type="number" id="iva-compra" placeholder="IVA 12%" />
+              </div>
+              <input type="number" id="total-compra" placeholder="Total" />
+              <button type="button" onclick="registrarCompra()">Guardar Compra</button>
+            </form>
+          </div>
+
+          <div class="card">
+            <h3>Libro de Compras (${comprasFiltradas.length} registros)</h3>
+            <div class="form-group">
+              <input type="text" id="buscador-compras" placeholder="Buscar por proveedor o número de factura..." onkeyup="filtrarCompras()">
+            </div>
+            
+            <div class="alert" style="margin-bottom: 15px;">
+              <strong>📊 Resumen de Compras</strong><br>
+              Total General: $${totalGeneral.toFixed(2)}<br>
+              Promedio por Compra: $${(totalGeneral / comprasFiltradas.length).toFixed(2)}
+            </div>
+            
+            <table id="tabla-compras">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Proveedor</th>
+                  <th>Factura</th>
+                  <th>Descripción</th>
+                  <th>Total</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="cuerpo-tabla-compras">
+                ${comprasPagina.map(compra => `
+                  <tr data-id="${compra.id}">
+                    <td contenteditable="true">${compra.fecha}</td>
+                    <td contenteditable="true">${compra.proveedor}</td>
+                    <td contenteditable="true">${compra.factura}</td>
+                    <td contenteditable="true">${compra.descripcion}</td>
+                    <td contenteditable="true">$${compra.total.toFixed(2)}</td>
+                    <td>
+                      <button onclick="guardarCambiosCompra(${compra.id})" style="background: #27ae60; margin-right: 5px;">Guardar</button>
+                      <button onclick="eliminarCompra(${compra.id})" style="background: #e74c3c;">Eliminar</button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            <div class="pagination" id="paginacion-compras">
+              ${Array.from({length: totalPaginas}, (_, i) => `
+                <button class="${i + 1 === paginaActualCompras ? 'active' : ''}" onclick="cambiarPaginaCompras(${i + 1})">${i + 1}</button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+        return contenido;
+      },
+
+      vehiculos: function() {
+        const vehiculosPorPagina = 10;
+        const inicio = (paginaActualVehiculos - 1) * vehiculosPorPagina;
+        const fin = inicio + vehiculosPorPagina;
+        const vehiculosPagina = vehiculosFiltrados.slice(inicio, fin);
+        
+        const totalPaginas = Math.ceil(vehiculosFiltrados.length / vehiculosPorPagina);
+        
+        let contenido = `
+          <div class="card">
+            <h2>🚗 Gestión de Vehículos</h2>
+            <form id="form-vehiculo-nuevo">
+              <div class="form-group">
+                <input type="text" id="placa-vehiculo" placeholder="Placa (AAA-1234)" required />
+                <input type="text" id="marca-vehiculo" placeholder="Marca" />
+              </div>
+              <div class="form-group">
+                <input type="text" id="modelo-vehiculo" placeholder="Modelo" />
+                <input type="number" id="anio-vehiculo" placeholder="Año" />
+              </div>
+              <input type="text" id="propietario-vehiculo" placeholder="Propietario (RUC o Cédula)" />
+              <div class="form-group">
+                <input type="date" id="soat-vehiculo" placeholder="SOAT (vencimiento)" />
+                <input type="date" id="revision-vehiculo" placeholder="Revisión Técnica" />
+              </div>
+              <textarea id="observaciones-vehiculo" placeholder="Observaciones o historial de mantenimiento"></textarea>
+              <button type="button" onclick="registrarVehiculo()">Registrar Vehículo</button>
+            </form>
+          </div>
+
+          <div class="card">
+            <h3>Vehículos Registrados (${vehiculosFiltrados.length} encontrados)</h3>
+            <div class="form-group">
+              <input type="text" id="buscador-vehiculos" placeholder="Buscar por placa, marca o propietario..." onkeyup="filtrarVehiculos()">
+            </div>
+            <table id="tabla-vehiculos">
+              <thead>
+                <tr>
+                  <th>Placa</th>
+                  <th>Marca</th>
+                  <th>Modelo</th>
+                  <th>Año</th>
+                  <th>Propietario</th>
+                  <th>SOAT</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="cuerpo-tabla-vehiculos">
+                ${vehiculosPagina.map(vehiculo => `
+                  <tr data-id="${vehiculo.id}">
+                    <td contenteditable="true">${vehiculo.placa}</td>
+                    <td contenteditable="true">${vehiculo.marca}</td>
+                    <td contenteditable="true">${vehiculo.modelo}</td>
+                    <td contenteditable="true">${vehiculo.año}</td>
+                    <td contenteditable="true">${vehiculo.propietario}</td>
+                    <td contenteditable="true">${vehiculo.soat}</td>
+                    <td>
+                      <button onclick="guardarCambiosVehiculo(${vehiculo.id})" style="background: #27ae60; margin-right: 5px;">Guardar</button>
+                      <button onclick="eliminarVehiculo(${vehiculo.id})" style="background: #e74c3c;">Eliminar</button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            <div class="pagination" id="paginacion-vehiculos">
+              ${Array.from({length: totalPaginas}, (_, i) => `
+                <button class="${i + 1 === paginaActualVehiculos ? 'active' : ''}" onclick="cambiarPaginaVehiculos(${i + 1})">${i + 1}</button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+        return contenido;
+      },
+
+      busqueda: function() {
+        return `
+        <div class="card">
+          <h2>🔍 Búsqueda de Vehículo (por Placa)</h2>
+          <div class="form-group">
+            <input type="text" id="placa-buscar" placeholder="Ingrese placa (ej: LBA-1234)" />
+            <button onclick="buscarVehiculo()">Buscar en Línea</button>
+          </div>
+
+          <div id="resultado-busqueda" class="alert" style="display: none;">
+            <h3>✅ Vehículo Encontrado (Simulado)</h3>
+            <p><strong>Placa:</strong> <span id="res-placa">LBA-1234</span></p>
+            <p><strong>Propietario:</strong> <span id="res-propietario">Auto S.A. (0987654321001)</span></p>
+            <p><strong>Marca/Modelo:</strong> <span id="res-modelo">Toyota Hilux 2022</span></p>
+            <p><strong>SOAT:</strong> <span id="res-soat">Vigente hasta 2025-12-01 ✅</span></p>
+            <p><strong>Multas:</strong> <span id="res-multas">2 pendientes ($80)</span></p>
+            <p><strong>Estado:</strong> <span id="res-estado">Activo - Sin gravámenes</span></p>
+            <button onclick="agregarAVehiculos()">➕ Agregar a mi flota</button>
+          </div>
+        </div>
+      `;
+      },
+
+      graficos: function() {
+        return `
+        <div class="card">
+          <h2>📈 Panel de Gráficos</h2>
+          <div class="form-group">
+            <select id="selector-grafico" onchange="actualizarGraficos(this.value)">
+              <option value="ventas">Ventas Mensuales</option>
+              <option value="compras">Compras vs Ventas</option>
+              <option value="gastos">Gastos por Vehículo</option>
+            </select>
+          </div>
+          <div class="chart-container">
+            <canvas id="miGrafico"></canvas>
+          </div>
+        </div>
+      `;
+      },
+
+      declaraciones: function() {
+        return `
+        <div class="card">
+          <h2>📑 Declaraciones Fiscales</h2>
+          <div class="alert">
+            <strong>📅 Próximas Declaraciones</strong><br>
+            IVA (Formulario 110): 13 de abril de 2025<br>
+            Retenciones (104): 13 de abril de 2025<br>
+            IESS (107): 10 de abril de 2025
+          </div>
+          <h3>Generar Declaración</h3>
+          <div class="form-group">
+            <select id="formulario-declaracion">
+              <option>Seleccione formulario</option>
+              <option>Formulario 110 - IVA</option>
+              <option>Formulario 104 - Retenciones</option>
+              <option>Formulario 111 - Impuesto a la Renta</option>
+              <option>Formulario 140 - RIMPE</option>
+            </select>
+            <input type="text" id="periodo-declaracion" placeholder="Periodo (ej: Marzo 2025)" />
+          </div>
+          <button onclick="generarDeclaracion()">Generar y Enviar al SRI</button>
+        </div>
+
+        <div class="card">
+          <h3>Historial de Declaraciones</h3>
+          <table>
+            <tr><th>Formulario</th><th>Periodo</th><th>Estado</th><th>Fecha</th></tr>
+            <tr><td>110</td><td>Marzo 2025</td><td>✅ Enviado</td><td>2025-04-13</td></tr>
+            <tr><td>104</td><td>Marzo 2025</td><td>✅ Enviado</td><td>2025-04-13</td></tr>
+          </table>
+        </div>
+      `;
+      },
+
+      ajustes: function() {
+        return `
+        <div class="card">
+          <h2>⚙️ Ajustes del Sistema</h2>
+          <div class="form-group">
+            <input type="text" id="nombre-empresa" placeholder="Nombre de la empresa" />
+            <input type="text" id="ruc-empresa" placeholder="RUC de la empresa" />
+          </div>
+          <div class="form-group">
+            <input type="text" id="establecimiento" placeholder="Establecimiento (001)" />
+            <input type="text" id="punto-emision" placeholder="Punto de emisión (001)" />
+          </div>
+          <h3>Firma Digital</h3>
+          <div class="form-group">
+            <input type="file" id="firma-digital" accept=".p12" />
+            <input type="password" id="contrasena-certificado" placeholder="Contraseña del certificado" />
+          </div>
+          <button onclick="guardarConfiguracion()">Guardar Configuración</button>
+        </div>
+      `;
+      },
+
+      soporte: function() {
+        return `
+        <div class="soporte-card">
+          <h3>📞 Soporte Técnico</h3>
+          
+          <div class="contact-info">
+            <i class="fab fa-whatsapp"></i>
+            <strong>WhatsApp:</strong> 0969482140
+          </div>
+          
+          <button class="whatsapp-btn" onclick="abrirWhatsApp()">
+            <i class="fab fa-whatsapp"></i>
+            Contactar por WhatsApp
+          </button>
+          
+          <div class="map-container">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3989.154399077875!2d-79.4589579!3d-1.7994377!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x902e07d8d5b5c0b9%3A0x5a5b5a5a5a5a5a5a!2sBabahoyo%2C%20Ecuador!5e0!3m2!1ses!2sus!4v1640000000000!5m2!1ses!2sus" 
+                    allowfullscreen="" 
+                    loading="lazy">
+            </iframe>
+          </div>
+          
+          <div class="oficina-info">
+            <h4>📍 Nuestras Oficinas</h4>
+            <p><strong>Babahoyo</strong></p>
+            <p>Av. Principal y Calle Sucre</p>
+            <p>Edificio Corporativo, Piso 3</p>
+          </div>
+          
+          <div class="horario-atencion">
+            <h4>⏰ Horario de Atención</h4>
+            <p><strong>Lunes a Viernes:</strong> 8:00 AM - 6:00 PM</p>
+            <p><strong>Sábado:</strong> 9:00 AM - 1:00 PM</p>
+            <p><strong>Domingo:</strong> Cerrado</p>
+          </div>
+          
+          <div class="alert" style="margin-top: 15px;">
+            <strong>💡 Consejos de Soporte</strong><br>
+            • Responda a todos los mensajes en 24 horas<br>
+            • Tenga a mano su número de cliente<br>
+            • Describa claramente su problema
+          </div>
+        </div>
+      `;
+      }
+    };
+
+    // Manejo del login
+    const loginForm = document.getElementById('login-form');
+    const loginContainer = document.getElementById('login-container');
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('main-content');
+    const logoutBtn = document.getElementById('logout-btn');
+
+    loginForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const username = document.getElementById('username');
+      const password = document.getElementById('password');
+      
+      if (!username || !password) return;
+      
+      const usernameValue = username.value;
+      const passwordValue = password.value;
+
+      // Simulación de autenticación
+      if (usernameValue && passwordValue) {
+        loginContainer.style.display = 'none';
+        sidebar.style.display = 'block';
+        mainContent.style.display = 'block';
+        
+        // Generar datos
+        generarDatosIniciales();
+        generarCompras();
+        generarVehiculos();
+        
+        // Cargar contenido inicial
+        cargarContenidoClientes();
+      } else {
+        alert('Por favor ingrese usuario y contraseña');
+      }
+    });
+
+    // Cerrar sesión
+    logoutBtn.addEventListener('click', function() {
+      if (confirm('¿Está seguro que desea cerrar sesión?')) {
+        sidebar.style.display = 'none';
+        mainContent.style.display = 'none';
+        loginContainer.style.display = 'flex';
+        
+        // Limpiar campos
+        const username = document.getElementById('username');
+        const password = document.getElementById('password');
+        if (username) username.value = '';
+        if (password) password.value = '';
+      }
+    });
+
+    // Función para cargar contenido de clientes con paginación
+    function cargarContenidoClientes() {
+      const clientesPorPagina = 10;
+      const inicio = (paginaActualClientes - 1) * clientesPorPagina;
+      const fin = inicio + clientesPorPagina;
+      const clientesPagina = clientesFiltrados.slice(inicio, fin);
+      
+      const totalPaginas = Math.ceil(clientesFiltrados.length / clientesPorPagina);
+      
+      let tablaHTML = `
+        <div class="card">
+          <h2>👥 Registro de Clientes</h2>
+          <form id="form-cliente-nuevo">
+            <div class="form-group">
+              <input type="text" id="nombre-cliente" placeholder="Nombre/Razón Social" required />
+              <input type="text" id="ruc-cliente" placeholder="RUC/Cédula" required />
+            </div>
+            <div class="form-group">
+              <input type="email" id="correo-cliente" placeholder="Correo" />
+              <input type="tel" id="telefono-cliente" placeholder="Teléfono" />
+            </div>
+            <input type="text" id="direccion-cliente" placeholder="Dirección" />
+            <select id="regimen-cliente">
+              <option value="">Seleccione régimen</option>
+              <option value="Régimen General">Régimen General</option>
+              <option value="RIMPE">RIMPE</option>
+              <option value="Agente de Retención">Agente de Retención</option>
+            </select>
+            <button type="button" onclick="registrarCliente()">Registrar Cliente</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h3>📋 Clientes Registrados (${clientesFiltrados.length} encontrados)</h3>
+          <div class="form-group">
+            <input type="text" id="buscador-clientes" placeholder="Buscar cliente por nombre o RUC..." onkeyup="filtrarClientes()">
+          </div>
+          <table id="tabla-clientes">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>RUC</th>
+                <th>Teléfono</th>
+                <th>Correo</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="cuerpo-tabla">
+              ${clientesPagina.map(cliente => `
+                <tr data-id="${cliente.id}">
+                  <td contenteditable="true">${cliente.nombre}</td>
+                  <td contenteditable="true">${cliente.ruc}</td>
+                  <td contenteditable="true">${cliente.telefono}</td>
+                  <td contenteditable="true">${cliente.correo}</td>
+                  <td>
+                    <button onclick="guardarCambiosCliente(${cliente.id})" style="background: #27ae60; margin-right: 5px;">Guardar</button>
+                    <button onclick="eliminarCliente(${cliente.id})" style="background: #e74c3c;">Eliminar</button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <div class="pagination" id="paginacion">
+            ${Array.from({length: totalPaginas}, (_, i) => `
+              <button class="${i + 1 === paginaActualClientes ? 'active' : ''}" onclick="cambiarPagina(${i + 1})">${i + 1}</button>
+            `).join('')}
+          </div>
+        </div>
+        
+        <div class="card">
+          <h3>📱 Código QR del Sistema</h3>
+          <div class="qr-container">
+            <div class="qr-code">
+              <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://srmanagerpro.com" alt="Código QR">
+            </div>
+            <div class="qr-info">
+              <h4>Acceso Rápido al Sistema</h4>
+              <p><strong>Empresa:</strong> SRI Manager Pro</p>
+              <p><strong>RUC:</strong> 0987654321001</p>
+              <p><strong>URL:</strong> <a href="https://srmanagerpro.com" target="_blank" style="color: #2c5aa0; text-decoration: underline;">https://srmanagerpro.com</a></p>
+              <p>Escanee este código QR para acceder al sistema desde su dispositivo móvil</p>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      const contentArea = document.getElementById('content-area');
+      if (contentArea) {
+        contentArea.innerHTML = tablaHTML;
+      }
+    }
+
+    // Función para cargar contenido de compras con paginación
+    function cargarContenidoCompras() {
+      const comprasPorPagina = 10;
+      const inicio = (paginaActualCompras - 1) * comprasPorPagina;
+      const fin = inicio + comprasPorPagina;
+      const comprasPagina = comprasFiltradas.slice(inicio, fin);
+      
+      const totalPaginas = Math.ceil(comprasFiltradas.length / comprasPorPagina);
+      
+      // Calcular total
+      const totalGeneral = comprasFiltradas.reduce((sum, compra) => sum + compra.total, 0);
+      
+      let tablaHTML = `
+        <div class="card">
+          <h2>📦 Registro de Compras</h2>
+          <form id="form-compra-nuevo">
+            <div class="form-group">
+              <input type="text" id="proveedor-compra" placeholder="Proveedor (RUC)" required />
+              <input type="date" id="fecha-compra" required />
+              <input type="text" id="factura-compra" placeholder="No. Factura" />
+            </div>
+            <input type="text" id="descripcion-compra" placeholder="Descripción" />
+            <div class="form-group">
+              <input type="number" id="subtotal-compra" placeholder="Subtotal" />
+              <input type="number" id="iva-compra" placeholder="IVA 12%" />
+            </div>
+            <input type="number" id="total-compra" placeholder="Total" />
+            <button type="button" onclick="registrarCompra()">Guardar Compra</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h3>Libro de Compras (${comprasFiltradas.length} registros)</h3>
+          <div class="form-group">
+            <input type="text" id="buscador-compras" placeholder="Buscar por proveedor o número de factura..." onkeyup="filtrarCompras()">
+          </div>
+          
+          <div class="alert" style="margin-bottom: 15px;">
+            <strong>📊 Resumen de Compras</strong><br>
+            Total General: $${totalGeneral.toFixed(2)}<br>
+            Promedio por Compra: $${(totalGeneral / comprasFiltradas.length).toFixed(2)}
+          </div>
+          
+          <table id="tabla-compras">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Proveedor</th>
+                <th>Factura</th>
+                <th>Descripción</th>
+                <th>Total</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="cuerpo-tabla-compras">
+              ${comprasPagina.map(compra => `
+                <tr data-id="${compra.id}">
+                  <td contenteditable="true">${compra.fecha}</td>
+                  <td contenteditable="true">${compra.proveedor}</td>
+                  <td contenteditable="true">${compra.factura}</td>
+                  <td contenteditable="true">${compra.descripcion}</td>
+                  <td contenteditable="true">$${compra.total.toFixed(2)}</td>
+                  <td>
+                    <button onclick="guardarCambiosCompra(${compra.id})" style="background: #27ae60; margin-right: 5px;">Guardar</button>
+                    <button onclick="eliminarCompra(${compra.id})" style="background: #e74c3c;">Eliminar</button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <div class="pagination" id="paginacion-compras">
+            ${Array.from({length: totalPaginas}, (_, i) => `
+              <button class="${i + 1 === paginaActualCompras ? 'active' : ''}" onclick="cambiarPaginaCompras(${i + 1})">${i + 1}</button>
+            `).join('')}
+          </div>
+        </div>
+      `;
+      
+      const contentArea = document.getElementById('content-area');
+      if (contentArea) {
+        contentArea.innerHTML = tablaHTML;
+      }
+    }
+
+    // Función para cargar contenido de vehículos con paginación
+    function cargarContenidoVehiculos() {
+      const vehiculosPorPagina = 10;
+      const inicio = (paginaActualVehiculos - 1) * vehiculosPorPagina;
+      const fin = inicio + vehiculosPorPagina;
+      const vehiculosPagina = vehiculosFiltrados.slice(inicio, fin);
+      
+      const totalPaginas = Math.ceil(vehiculosFiltrados.length / vehiculosPorPagina);
+      
+      let tablaHTML = `
+        <div class="card">
+          <h2>🚗 Gestión de Vehículos</h2>
+          <form id="form-vehiculo-nuevo">
+            <div class="form-group">
+              <input type="text" id="placa-vehiculo" placeholder="Placa (AAA-1234)" required />
+              <input type="text" id="marca-vehiculo" placeholder="Marca" />
+            </div>
+            <div class="form-group">
+              <input type="text" id="modelo-vehiculo" placeholder="Modelo" />
+              <input type="number" id="anio-vehiculo" placeholder="Año" />
+            </div>
+            <input type="text" id="propietario-vehiculo" placeholder="Propietario (RUC o Cédula)" />
+            <div class="form-group">
+              <input type="date" id="soat-vehiculo" placeholder="SOAT (vencimiento)" />
+              <input type="date" id="revision-vehiculo" placeholder="Revisión Técnica" />
+            </div>
+            <textarea id="observaciones-vehiculo" placeholder="Observaciones o historial de mantenimiento"></textarea>
+            <button type="button" onclick="registrarVehiculo()">Registrar Vehículo</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h3>Vehículos Registrados (${vehiculosFiltrados.length} encontrados)</h3>
+          <div class="form-group">
+            <input type="text" id="buscador-vehiculos" placeholder="Buscar por placa, marca o propietario..." onkeyup="filtrarVehiculos()">
+          </div>
+          <table id="tabla-vehiculos">
+            <thead>
+              <tr>
+                <th>Placa</th>
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th>Año</th>
+                <th>Propietario</th>
+                <th>SOAT</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="cuerpo-tabla-vehiculos">
+              ${vehiculosPagina.map(vehiculo => `
+                <tr data-id="${vehiculo.id}">
+                  <td contenteditable="true">${vehiculo.placa}</td>
+                  <td contenteditable="true">${vehiculo.marca}</td>
+                  <td contenteditable="true">${vehiculo.modelo}</td>
+                  <td contenteditable="true">${vehiculo.año}</td>
+                  <td contenteditable="true">${vehiculo.propietario}</td>
+                  <td contenteditable="true">${vehiculo.soat}</td>
+                  <td>
+                    <button onclick="guardarCambiosVehiculo(${vehiculo.id})" style="background: #27ae60; margin-right: 5px;">Guardar</button>
+                    <button onclick="eliminarVehiculo(${vehiculo.id})" style="background: #e74c3c;">Eliminar</button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <div class="pagination" id="paginacion-vehiculos">
+            ${Array.from({length: totalPaginas}, (_, i) => `
+              <button class="${i + 1 === paginaActualVehiculos ? 'active' : ''}" onclick="cambiarPaginaVehiculos(${i + 1})">${i + 1}</button>
+            `).join('')}
+          </div>
+        </div>
+      `;
+      
+      const contentArea = document.getElementById('content-area');
+      if (contentArea) {
+        contentArea.innerHTML = tablaHTML;
+      }
+    }
+
+    // Función para cargar contenido de soporte técnico
+    function cargarContenidoSoporte() {
+      const contenido = `
+        <div class="soporte-card">
+          <h3>📞 Soporte Técnico</h3>
+          
+          <div class="contact-info">
+            <i class="fab fa-whatsapp"></i>
+            <strong>WhatsApp:</strong> 0969482140
+          </div>
+          
+          <button class="whatsapp-btn" onclick="abrirWhatsApp()">
+            <i class="fab fa-whatsapp"></i>
+            Contactar por WhatsApp
+          </button>
+          
+          <div class="map-container">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3989.154399077875!2d-79.4589579!3d-1.7994377!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x902e07d8d5b5c0b9%3A0x5a5b5a5a5a5a5a5a!2sBabahoyo%2C%20Ecuador!5e0!3m2!1ses!2sus!4v1640000000000!5m2!1ses!2sus" 
+                    allowfullscreen="" 
+                    loading="lazy">
+            </iframe>
+          </div>
+          
+          <div class="oficina-info">
+            <h4>📍 Nuestras Oficinas</h4>
+            <p><strong>Babahoyo</strong></p>
+            <p>Av. Principal y Calle Sucre</p>
+            <p>Edificio Corporativo, Piso 3</p>
+          </div>
+          
+          <div class="horario-atencion">
+            <h4>⏰ Horario de Atención</h4>
+            <p><strong>Lunes a Viernes:</strong> 8:00 AM - 6:00 PM</p>
+            <p><strong>Sábado:</strong> 9:00 AM - 1:00 PM</p>
+            <p><strong>Domingo:</strong> Cerrado</p>
+          </div>
+          
+          <div class="alert" style="margin-top: 15px;">
+            <strong>💡 Consejos de Soporte</strong><br>
+            • Responda a todos los mensajes en 24 horas<br>
+            • Tenga a mano su número de cliente<br>
+            • Describa claramente su problema
+          </div>
+        </div>
+      `;
+      
+      const contentArea = document.getElementById('content-area');
+      if (contentArea) {
+        contentArea.innerHTML = contenido;
+      }
+    }
+
+    // Función para registrar nuevo cliente
+    window.registrarCliente = function() {
+      const nombre = document.getElementById('nombre-cliente');
+      const ruc = document.getElementById('ruc-cliente');
+      const correo = document.getElementById('correo-cliente');
+      const telefono = document.getElementById('telefono-cliente');
+      const direccion = document.getElementById('direccion-cliente');
+      const regimen = document.getElementById('regimen-cliente');
+      
+      if (!nombre || !ruc || !correo || !telefono || !direccion || !regimen) {
+        alert('Todos los campos son requeridos');
+        return;
+      }
+      
+      if (!nombre.value || !ruc.value) {
+        alert('Nombre y RUC son requeridos');
+        return;
+      }
+      
+      const nuevoCliente = {
+        id: clientesData.length + 1,
+        nombre: nombre.value,
+        ruc: ruc.value,
+        correo: correo.value,
+        telefono: telefono.value,
+        direccion: direccion.value,
+        regimen: regimen.value
+      };
+      
+      clientesData.push(nuevoCliente);
+      clientesFiltrados.push(nuevoCliente);
+      
+      // Limpiar formulario
+      nombre.value = '';
+      ruc.value = '';
+      correo.value = '';
+      telefono.value = '';
+      direccion.value = '';
+      regimen.value = '';
+      
+      // Recargar contenido
+      cargarContenidoClientes();
+      alert('Cliente registrado exitosamente');
+    };
+
+    // Función para guardar cambios en cliente
+    window.guardarCambiosCliente = function(id) {
+      const fila = document.querySelector(`tr[data-id="${id}"]`);
+      if (!fila) return;
+      
+      const celdas = fila.querySelectorAll('td');
+      const nombre = celdas[0].textContent;
+      const ruc = celdas[1].textContent;
+      const telefono = celdas[2].textContent;
+      const correo = celdas[3].textContent;
+      
+      // Actualizar en el array
+      const clienteIndex = clientesData.findIndex(cliente => cliente.id === id);
+      if (clienteIndex !== -1) {
+        clientesData[clienteIndex].nombre = nombre;
+        clientesData[clienteIndex].ruc = ruc;
+        clientesData[clienteIndex].telefono = telefono;
+        clientesData[clienteIndex].correo = correo;
+      }
+      
+      const clienteFiltradoIndex = clientesFiltrados.findIndex(cliente => cliente.id === id);
+      if (clienteFiltradoIndex !== -1) {
+        clientesFiltrados[clienteFiltradoIndex].nombre = nombre;
+        clientesFiltrados[clienteFiltradoIndex].ruc = ruc;
+        clientesFiltrados[clienteFiltradoIndex].telefono = telefono;
+        clientesFiltrados[clienteFiltradoIndex].correo = correo;
+      }
+      
+      alert('Cambios guardados exitosamente');
+    };
+
+    // Función para eliminar cliente
+    window.eliminarCliente = function(id) {
+      if (confirm('¿Está seguro que desea eliminar este cliente?')) {
+        clientesData = clientesData.filter(cliente => cliente.id !== id);
+        clientesFiltrados = clientesFiltrados.filter(cliente => cliente.id !== id);
+        cargarContenidoClientes();
+        alert('Cliente eliminado exitosamente');
+      }
+    };
+
+    // Función para registrar nueva compra
+    window.registrarCompra = function() {
+      const proveedor = document.getElementById('proveedor-compra');
+      const fecha = document.getElementById('fecha-compra');
+      const factura = document.getElementById('factura-compra');
+      const descripcion = document.getElementById('descripcion-compra');
+      const subtotal = document.getElementById('subtotal-compra');
+      const iva = document.getElementById('iva-compra');
+      const total = document.getElementById('total-compra');
+      
+      if (!proveedor || !fecha || !factura || !subtotal || !iva || !total) {
+        alert('Todos los campos son requeridos');
+        return;
+      }
+      
+      if (!proveedor.value || !fecha.value || !factura.value) {
+        alert('Proveedor, fecha y factura son requeridos');
+        return;
+      }
+      
+      const nuevaCompra = {
+        id: comprasData.length + 1,
+        fecha: fecha.value,
+        proveedor: proveedor.value,
+        factura: factura.value,
+        descripcion: descripcion.value,
+        subtotal: parseFloat(subtotal.value) || 0,
+        iva: parseFloat(iva.value) || 0,
+        total: parseFloat(total.value) || 0
+      };
+      
+      comprasData.push(nuevaCompra);
+      comprasFiltradas.push(nuevaCompra);
+      
+      // Limpiar formulario
+      proveedor.value = '';
+      fecha.value = '';
+      factura.value = '';
+      descripcion.value = '';
+      subtotal.value = '';
+      iva.value = '';
+      total.value = '';
+      
+      // Recargar contenido
+      cargarContenidoCompras();
+      alert('Compra registrada exitosamente');
+    };
+
+    // Función para guardar cambios en compra
+    window.guardarCambiosCompra = function(id) {
+      const fila = document.querySelector(`tr[data-id="${id}"]`);
+      if (!fila) return;
+      
+      const celdas = fila.querySelectorAll('td');
+      const fecha = celdas[0].textContent;
+      const proveedor = celdas[1].textContent;
+      const factura = celdas[2].textContent;
+      const descripcion = celdas[3].textContent;
+      const totalText = celdas[4].textContent.replace('$', '');
+      const total = parseFloat(totalText) || 0;
+      
+      // Actualizar en el array
+      const compraIndex = comprasData.findIndex(compra => compra.id === id);
+      if (compraIndex !== -1) {
+        comprasData[compraIndex].fecha = fecha;
+        comprasData[compraIndex].proveedor = proveedor;
+        comprasData[compraIndex].factura = factura;
+        comprasData[compraIndex].descripcion = descripcion;
+        comprasData[compraIndex].total = total;
+      }
+      
+      const compraFiltradaIndex = comprasFiltradas.findIndex(compra => compra.id === id);
+      if (compraFiltradaIndex !== -1) {
+        comprasFiltradas[compraFiltradaIndex].fecha = fecha;
+        comprasFiltradas[compraFiltradaIndex].proveedor = proveedor;
+        comprasFiltradas[compraFiltradaIndex].factura = factura;
+        comprasFiltradas[compraFiltradaIndex].descripcion = descripcion;
+        comprasFiltradas[compraFiltradaIndex].total = total;
+      }
+      
+      alert('Cambios guardados exitosamente');
+    };
+
+    // Función para eliminar compra
+    window.eliminarCompra = function(id) {
+      if (confirm('¿Está seguro que desea eliminar esta compra?')) {
+        comprasData = comprasData.filter(compra => compra.id !== id);
+        comprasFiltradas = comprasFiltradas.filter(compra => compra.id !== id);
+        cargarContenidoCompras();
+        alert('Compra eliminada exitosamente');
+      }
+    };
+
+    // Función para registrar nuevo vehículo
+    window.registrarVehiculo = function() {
+      const placa = document.getElementById('placa-vehiculo');
+      const marca = document.getElementById('marca-vehiculo');
+      const modelo = document.getElementById('modelo-vehiculo');
+      const anio = document.getElementById('anio-vehiculo');
+      const propietario = document.getElementById('propietario-vehiculo');
+      const soat = document.getElementById('soat-vehiculo');
+      const revision = document.getElementById('revision-vehiculo');
+      const observaciones = document.getElementById('observaciones-vehiculo');
+      
+      if (!placa || !marca || !modelo || !anio || !propietario || !soat) {
+        alert('Todos los campos son requeridos');
+        return;
+      }
+      
+      if (!placa.value) {
+        alert('La placa es requerida');
+        return;
+      }
+      
+      const nuevoVehiculo = {
+        id: vehiculosData.length + 1,
+        placa: placa.value,
+        marca: marca.value,
+        modelo: modelo.value,
+        año: parseInt(anio.value) || 0,
+        propietario: propietario.value,
+        soat: soat.value,
+        revision: revision.value,
+        observaciones: observaciones.value
+      };
+      
+      vehiculosData.push(nuevoVehiculo);
+      vehiculosFiltrados.push(nuevoVehiculo);
+      
+      // Limpiar formulario
+      placa.value = '';
+      marca.value = '';
+      modelo.value = '';
+      anio.value = '';
+      propietario.value = '';
+      soat.value = '';
+      revision.value = '';
+      observaciones.value = '';
+      
+      // Recargar contenido
+      cargarContenidoVehiculos();
+      alert('Vehículo registrado exitosamente');
+    };
+
+    // Función para guardar cambios en vehículo
+    window.guardarCambiosVehiculo = function(id) {
+      const fila = document.querySelector(`tr[data-id="${id}"]`);
+      if (!fila) return;
+      
+      const celdas = fila.querySelectorAll('td');
+      const placa = celdas[0].textContent;
+      const marca = celdas[1].textContent;
+      const modelo = celdas[2].textContent;
+      const año = parseInt(celdas[3].textContent) || 0;
+      const propietario = celdas[4].textContent;
+      const soat = celdas[5].textContent;
+      
+      // Actualizar en el array
+      const vehiculoIndex = vehiculosData.findIndex(vehiculo => vehiculo.id === id);
+      if (vehiculoIndex !== -1) {
+        vehiculosData[vehiculoIndex].placa = placa;
+        vehiculosData[vehiculoIndex].marca = marca;
+        vehiculosData[vehiculoIndex].modelo = modelo;
+        vehiculosData[vehiculoIndex].año = año;
+        vehiculosData[vehiculoIndex].propietario = propietario;
+        vehiculosData[vehiculoIndex].soat = soat;
+      }
+      
+      const vehiculoFiltradoIndex = vehiculosFiltrados.findIndex(vehiculo => vehiculo.id === id);
+      if (vehiculoFiltradoIndex !== -1) {
+        vehiculosFiltrados[vehiculoFiltradoIndex].placa = placa;
+        vehiculosFiltrados[vehiculoFiltradoIndex].marca = marca;
+        vehiculosFiltrados[vehiculoFiltradoIndex].modelo = modelo;
+        vehiculosFiltrados[vehiculoFiltradoIndex].año = año;
+        vehiculosFiltrados[vehiculoFiltradoIndex].propietario = propietario;
+        vehiculosFiltrados[vehiculoFiltradoIndex].soat = soat;
+      }
+      
+      alert('Cambios guardados exitosamente');
+    };
+
+    // Función para eliminar vehículo
+    window.eliminarVehiculo = function(id) {
+      if (confirm('¿Está seguro que desea eliminar este vehículo?')) {
+        vehiculosData = vehiculosData.filter(vehiculo => vehiculo.id !== id);
+        vehiculosFiltrados = vehiculosFiltrados.filter(vehiculo => vehiculo.id !== id);
+        cargarContenidoVehiculos();
+        alert('Vehículo eliminado exitosamente');
+      }
+    };
+
+    // Función para agregar producto a la factura
+    window.agregarProducto = function() {
+      const nombre = document.getElementById('producto-nombre');
+      const cantidad = document.getElementById('producto-cantidad');
+      const precio = document.getElementById('producto-precio');
+      const ivaSelect = document.getElementById('producto-iva');
+      
+      if (!nombre || !cantidad || !precio || !ivaSelect) return;
+      
+      if (!nombre.value || !cantidad.value || !precio.value) {
+        alert('Por favor complete todos los campos del producto');
+        return;
+      }
+      
+      const cantidadNum = parseFloat(cantidad.value);
+      const precioNum = parseFloat(precio.value);
+      const ivaTipo = ivaSelect.value;
+      
+      if (cantidadNum <= 0 || precioNum <= 0) {
+        alert('La cantidad y precio deben ser mayores a cero');
+        return;
+      }
+      
+      const subtotal = cantidadNum * precioNum;
+      const iva = ivaTipo === '12' ? subtotal * 0.12 : 0;
+      const total = subtotal + iva;
+      
+      const producto = {
+        id: productosFactura.length + 1,
+        nombre: nombre.value,
+        cantidad: cantidadNum,
+        precio: precioNum,
+        iva: ivaTipo,
+        subtotal: subtotal,
+        total: total
+      };
+      
+      productosFactura.push(producto);
+      
+      // Limpiar campos del producto
+      nombre.value = '';
+      cantidad.value = '1';
+      precio.value = '';
+      
+      // Actualizar tabla de productos
+      actualizarTablaProductos();
+      
+      // Actualizar totales
+      calcularTotales();
+    };
+
+    // Función para actualizar la tabla de productos
+    function actualizarTablaProductos() {
+      const cuerpoProductos = document.getElementById('cuerpo-productos');
+      const productosAgregados = document.getElementById('productos-agregados');
+      
+      if (!cuerpoProductos || !productosAgregados) return;
+      
+      if (productosFactura.length === 0) {
+        productosAgregados.style.display = 'none';
+        return;
+      }
+      
+      productosAgregados.style.display = 'block';
+      
+      cuerpoProductos.innerHTML = productosFactura.map(producto => `
+        <tr>
+          <td>${producto.nombre}</td>
+          <td>${producto.cantidad}</td>
+          <td>$${producto.precio.toFixed(2)}</td>
+          <td>${producto.iva === '12' ? '12%' : producto.iva === '0' ? '0%' : 'Exento'}</td>
+          <td>$${producto.total.toFixed(2)}</td>
+          <td>
+            <button onclick="eliminarProducto(${producto.id})" style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 4px;">Eliminar</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Función para eliminar producto
+    window.eliminarProducto = function(id) {
+      productosFactura = productosFactura.filter(producto => producto.id !== id);
+      actualizarTablaProductos();
+      calcularTotales();
+    };
+
+    // Función para calcular totales
+    function calcularTotales() {
+      const subtotal = productosFactura.reduce((sum, producto) => sum + producto.subtotal, 0);
+      const iva = productosFactura.reduce((sum, producto) => sum + (producto.iva === '12' ? producto.subtotal * 0.12 : 0), 0);
+      const total = subtotal + iva;
+      
+      document.getElementById('subtotal-factura').textContent = `$${subtotal.toFixed(2)}`;
+      document.getElementById('iva-factura').textContent = `$${iva.toFixed(2)}`;
+      document.getElementById('total-factura').textContent = `$${total.toFixed(2)}`;
+    }
+
+    // Función para actualizar datos del cliente en el formulario
+    window.actualizarDatosCliente = function() {
+      const clienteSelect = document.getElementById('cliente-factura');
+      const clienteNombre = document.getElementById('cliente-nombre');
+      const clienteRuc = document.getElementById('cliente-ruc');
+      
+      if (!clienteSelect || !clienteNombre || !clienteRuc) return;
+      
+      const clienteId = clienteSelect.value;
+      
+      if (clienteId) {
+        const cliente = clientesData.find(c => c.id == clienteId);
+        if (cliente) {
+          clienteNombre.value = cliente.nombre;
+          clienteRuc.value = cliente.ruc;
+        }
+      } else {
+        clienteNombre.value = '';
+        clienteRuc.value = '';
+      }
+    };
+
+    // Función para emitir factura
+    window.emitirFactura = function() {
+      if (productosFactura.length === 0) {
+        alert('Debe agregar al menos un producto a la factura');
+        return;
+      }
+      
+      const clienteId = document.getElementById('cliente-factura').value;
+      const fecha = document.getElementById('fecha-factura').value;
+      const comprobante = document.getElementById('comprobante-factura').value;
+      
+      if (!clienteId || !fecha || !comprobante) {
+        alert('Por favor complete todos los campos de la factura');
+        return;
+      }
+      
+      const cliente = clientesData.find(c => c.id == clienteId);
+      if (!cliente) {
+        alert('Cliente no encontrado');
+        return;
+      }
+      
+      // Calcular totales
+      const subtotal = productosFactura.reduce((sum, producto) => sum + producto.subtotal, 0);
+      const iva = productosFactura.reduce((sum, producto) => sum + (producto.iva === '12' ? producto.subtotal * 0.12 : 0), 0);
+      const total = subtotal + iva;
+      
+      // Generar clave de acceso (simulada)
+      const fechaFormateada = fecha.split('-').reverse().join('');
+      const claveAcceso = `${fechaFormateada}01098765432100112345678901234567890123456789012`;
+      
+      // Llenar la factura
+      document.getElementById('factura-cliente-nombre').textContent = cliente.nombre;
+      document.getElementById('factura-cliente-ruc').textContent = cliente.ruc;
+      document.getElementById('factura-fecha').textContent = new Date(fecha).toLocaleDateString('es-ES');
+      document.getElementById('factura-comprobante').textContent = comprobante;
+      document.getElementById('factura-clave').textContent = claveAcceso;
+      document.getElementById('factura-subtotal').textContent = `$${subtotal.toFixed(2)}`;
+      document.getElementById('factura-iva').textContent = `$${iva.toFixed(2)}`;
+      document.getElementById('factura-total').textContent = `$${total.toFixed(2)}`;
+      
+      // Llenar productos
+      const facturaProductos = document.getElementById('factura-productos');
+      facturaProductos.innerHTML = productosFactura.map(producto => `
+        <tr>
+          <td>${producto.nombre}</td>
+          <td>${producto.cantidad}</td>
+          <td>$${producto.precio.toFixed(2)}</td>
+          <td>${producto.iva === '12' ? '12%' : producto.iva === '0' ? '0%' : 'Exento'}</td>
+          <td>$${producto.total.toFixed(2)}</td>
+        </tr>
+      `).join('');
+      
+      // Mostrar factura
+      document.getElementById('factura-imprimir').style.display = 'block';
+      
+      // Deshabilitar botón de emitir
+      document.querySelector('#form-factura button[onclick="emitirFactura()"]').disabled = true;
+      
+      alert('Factura emitida exitosamente');
+    };
+
+    // Función para abrir WhatsApp
+    window.abrirWhatsApp = function() {
+      const numero = '593969482140'; // 593 es el código de país de Ecuador
+      const mensaje = 'Hola, necesito soporte técnico para SRI Manager Pro';
+      const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
+      window.open(url, '_blank');
+    };
+
+    // Función para cambiar de página de clientes
+    window.cambiarPagina = function(numeroPagina) {
+      paginaActualClientes = numeroPagina;
+      cargarContenidoClientes();
+    };
+
+    // Función para cambiar de página de compras
+    window.cambiarPaginaCompras = function(numeroPagina) {
+      paginaActualCompras = numeroPagina;
+      cargarContenidoCompras();
+    };
+
+    // Función para cambiar de página de vehículos
+    window.cambiarPaginaVehiculos = function(numeroPagina) {
+      paginaActualVehiculos = numeroPagina;
+      cargarContenidoVehiculos();
+    };
+
+    // Función para filtrar clientes
+    window.filtrarClientes = function() {
+      const buscador = document.getElementById('buscador-clientes');
+      if (!buscador) return;
+      
+      const termino = buscador.value.toLowerCase().trim();
+      
+      if (termino === '') {
+        clientesFiltrados = [...clientesData];
+      } else {
+        clientesFiltrados = clientesData.filter(cliente => 
+          cliente.nombre.toLowerCase().includes(termino) || 
+          cliente.ruc.includes(termino)
+        );
+      }
+      
+      paginaActualClientes = 1;
+      cargarContenidoClientes();
+    };
+
+    // Función para filtrar compras
+    window.filtrarCompras = function() {
+      const buscador = document.getElementById('buscador-compras');
+      if (!buscador) return;
+      
+      const termino = buscador.value.toLowerCase().trim();
+      
+      if (termino === '') {
+        comprasFiltradas = [...comprasData];
+      } else {
+        comprasFiltradas = comprasData.filter(compra => 
+          compra.proveedor.toLowerCase().includes(termino) || 
+          compra.factura.includes(termino) ||
+          compra.descripcion.toLowerCase().includes(termino)
+        );
+      }
+      
+      paginaActualCompras = 1;
+      cargarContenidoCompras();
+    };
+
+    // Función para filtrar vehículos
+    window.filtrarVehiculos = function() {
+      const buscador = document.getElementById('buscador-vehiculos');
+      if (!buscador) return;
+      
+      const termino = buscador.value.toLowerCase().trim();
+      
+      if (termino === '') {
+        vehiculosFiltrados = [...vehiculosData];
+      } else {
+        vehiculosFiltrados = vehiculosData.filter(vehiculo => 
+          vehiculo.placa.toLowerCase().includes(termino) || 
+          vehiculo.marca.toLowerCase().includes(termino) ||
+          vehiculo.modelo.toLowerCase().includes(termino) ||
+          vehiculo.propietario.toLowerCase().includes(termino)
+        );
+      }
+      
+      paginaActualVehiculos = 1;
+      cargarContenidoVehiculos();
+    };
+
+    // Cambiar pestañas
+    document.querySelectorAll('.sidebar-menu a').forEach(link => {
+      link.addEventListener('click', function (e) {
+        e.preventDefault();
+        
+        // Actualizar activo
+        document.querySelectorAll('.sidebar-menu a').forEach(a => {
+          a.classList.remove('active');
+        });
+        this.classList.add('active');
+
+        // Actualizar título
+        const pageHeader = document.getElementById('page-title');
+        if (pageHeader) {
+          pageHeader.textContent = this.textContent.trim();
+        }
+
+        // Cargar contenido
+        const tabKey = this.getAttribute('data-tab');
+        
+        if (tabKey === 'clientes') {
+          cargarContenidoClientes();
+        } else if (tabKey === 'compras') {
+          cargarContenidoCompras();
+        } else if (tabKey === 'vehiculos') {
+          cargarContenidoVehiculos();
+        } else if (tabKey === 'soporte') {
+          cargarContenidoSoporte();
+        } else if (tabKey === 'graficos') {
+          cargarContenidoGraficos();
+        } else if (tabKey === 'facturas') {
+          const contenido = typeof tabs[tabKey] === 'function' ? tabs[tabKey]() : tabs[tabKey];
+          const contentArea = document.getElementById('content-area');
+          if (contentArea) {
+            contentArea.innerHTML = contenido;
+          }
+        } else {
+          const contenido = typeof tabs[tabKey] === 'function' ? tabs[tabKey]() : tabs[tabKey];
+          const contentArea = document.getElementById('content-area');
+          if (contentArea) {
+            contentArea.innerHTML = contenido;
+          }
+        }
+      });
+    });
+
+    // Inicializar gráfico
+    let miGrafico = null;
+    function cargarContenidoGraficos() {
+      const contenido = `
+        <div class="card">
+          <h2>📈 Panel de Gráficos</h2>
+          <div class="form-group">
+            <select id="selector-grafico" onchange="actualizarGraficos(this.value)">
+              <option value="ventas">Ventas Mensuales</option>
+              <option value="compras">Compras vs Ventas</option>
+              <option value="gastos">Gastos por Vehículo</option>
+            </select>
+          </div>
+          <div class="chart-container">
+            <canvas id="miGrafico"></canvas>
+          </div>
+        </div>
+      `;
+      
+      const contentArea = document.getElementById('content-area');
+      if (contentArea) {
+        contentArea.innerHTML = contenido;
+      }
+      
+      // Inicializar gráfico
+      const ctx = document.getElementById('miGrafico');
+      if (!ctx) return;
+      
+      if (miGrafico) {
+        miGrafico.destroy();
+      }
+
+      miGrafico = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+          datasets: [{
+            label: 'Ventas (USD)',
+            data: [12000, 14000, 16000, 15000, 18000, 20000],
+            backgroundColor: '#2c5aa0',
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'top' },
+            tooltip: { mode: 'index' }
+          }
+        }
+      });
+    }
+
+    // Actualizar gráficos según selección
+    window.actualizarGraficos = function(tipo) {
+      if (!miGrafico) return;
+      
+      let data, label;
+      
+      switch(tipo) {
+        case 'ventas':
+          data = [12000, 14000, 16000, 15000, 18000, 20000];
+          label = 'Ventas (USD)';
+          miGrafico.data.datasets[0].backgroundColor = '#2c5aa0';
+          break;
+        case 'compras':
+          data = [8000, 9000, 11000, 10000, 13000, 15000];
+          label = 'Compras (USD)';
+          miGrafico.data.datasets[0].backgroundColor = '#e74c3c';
+          break;
+        case 'gastos':
+          data = [2000, 2500, 1800, 3000, 2200, 2800];
+          label = 'Gastos por Vehículo (USD)';
+          miGrafico.data.datasets[0].backgroundColor = '#f39c12';
+          break;
+        default:
+          data = [12000, 14000, 16000, 15000, 18000, 20000];
+          label = 'Ventas (USD)';
+          miGrafico.data.datasets[0].backgroundColor = '#2c5aa0';
+      }
+      
+      miGrafico.data.datasets[0].data = data;
+      miGrafico.data.datasets[0].label = label;
+      miGrafico.update();
+    };
+
+    // Simular búsqueda de vehículo
+    window.buscarVehiculo = function() {
+      const placaInput = document.getElementById('placa-buscar');
+      const resultado = document.getElementById('resultado-busqueda');
+      
+      if (!placaInput || !resultado) return;
+      
+      const valorPlaca = placaInput.value.trim();
+      if (valorPlaca) {
+        const resPlaca = document.getElementById('res-placa');
+        const resPropietario = document.getElementById('res-propietario');
+        const resModelo = document.getElementById('res-modelo');
+        const resSoat = document.getElementById('res-soat');
+        const resMultas = document.getElementById('res-multas');
+        const resEstado = document.getElementById('res-estado');
+        
+        if (resPlaca) resPlaca.textContent = valorPlaca;
+        if (resPropietario) resPropietario.textContent = 'Auto S.A. (0987654321001)';
+        if (resModelo) resModelo.textContent = 'Toyota Hilux 2022';
+        if (resSoat) resSoat.textContent = 'Vigente hasta 2025-12-01 ✅';
+        if (resMultas) resMultas.textContent = '2 pendientes ($80)';
+        if (resEstado) resEstado.textContent = 'Activo - Sin gravámenes';
+        
+        resultado.style.display = 'block';
+      } else {
+        alert("Ingrese una placa válida");
+      }
+    };
+
+    window.agregarAVehiculos = function() {
+      alert("Vehículo agregado exitosamente a tu flota.");
+    };
+
+    // Agregar eventos a formularios para prevenir envío
+    document.addEventListener('click', function(e) {
+      if (e.target.tagName === 'BUTTON' && e.target.type !== 'submit') {
+        e.preventDefault();
+      }
+    });
+  </script>
+</body>
+</html>
+```
